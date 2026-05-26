@@ -71,6 +71,31 @@ body {
   color: inherit;
 }
 
+/* Wordmark style: lowercase 'kiri' with a small accent dot */
+.wordmark {
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  text-transform: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text);
+}
+
+.wordmark .accent-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--accent);
+  display: inline-block;
+  margin-left: 0.25rem;
+  box-shadow: 0 1px 0 rgba(0,0,0,0.2);
+}
+
+/* hide legacy avatar when using wordmark */
+.brand-avatar { display: none; }
+
 /* ---- main ---- */
 
 .main {
