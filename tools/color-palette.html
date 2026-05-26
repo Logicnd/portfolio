@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Color Palette Extractor — Kiri</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .tool { max-width:1100px; margin:1.5rem auto; }
+    .card { padding:1rem; border-radius:8px; border:1px solid var(--border); background:var(--surface); }
+    .inputs { display:flex; gap:0.75rem; align-items:center; margin-bottom:0.75rem; }
+    .preview-img { max-width:240px; max-height:160px; object-fit:contain; border:1px solid var(--border); border-radius:6px; }
+    .swatches { display:flex; gap:0.5rem; flex-wrap:wrap; margin-top:0.75rem; }
+    .swatch { width:96px; padding:0.5rem; border-radius:6px; color:var(--text); font-size:0.85rem; display:flex; gap:0.5rem; align-items:center; justify-content:space-between; border:1px solid rgba(255,255,255,0.03); }
+    .swatch .hex { font-weight:600; }
+    .controls { display:flex; gap:0.5rem; align-items:center; }
+    .note { color:var(--text-muted); font-size:0.9rem; }
+    input[type=file] { color:var(--text); }
+    .copy-btn { background:transparent; border:1px solid var(--border); color:var(--text); padding:0.25rem 0.45rem; border-radius:6px; cursor:pointer; }
+    .access { font-size:0.8rem; color:var(--text-muted); }
+    @media (max-width:900px){ .inputs{ flex-direction:column; align-items:flex-start } .swatch{ width:48%; } }
+  </style>
+</head>
+<body>
+  <header class="header topbar">
+    <div class="brand"><a href="../index.html" class="brand-link" aria-label="Kiri home"><span class="wordmark">kiri<span class="accent-dot" aria-hidden="true"></span></span></a></div>
+    <nav class="topnav" aria-hidden="true"></nav>
+    <button class="hamburger">☰</button>
+  </header>
+
+  <main class="main">
+    <section class="hero">
+      <h1>Color Palette Extractor</h1>
+      <p class="tagline">Upload an image to extract dominant colors with copyable hex codes and accessibility checks.</p>
+    </section>
+
+    <div class="tool card">
+      <div class="inputs">
+        <input id="file" type="file" accept="image/*">
+        <input id="url" type="url" placeholder="or paste image URL" style="flex:1;padding:0.45rem;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--text)">
+        <div class="controls">
+          <button id="loadUrl" class="btn">Load</button>
+          <button id="extract" class="btn">Extract</button>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:1rem;align-items:flex-start;">
+        <div style="flex:0 0 260px;">
+          <img id="preview" class="preview-img" alt="preview">
+          <p class="note">Tip: images with distinct areas produce better palettes.</p>
+        </div>
+        <div style="flex:1">
+          <div id="swatches" class="swatches"></div>
+        </div>
+      </div>
+
+      <canvas id="hiddenCanvas" style="display:none"></canvas>
+    </div>
+
+  </main>
+
+  <footer class="footer"><p>&copy; 2026 Kiri</p></footer>
+
+<script>
+const fileEl = document.getElementById('file');
+const urlEl = document.getElementById('url');
+const loadUrlBtn = document.getElementById('loadUrl');
+const extractBtn = document.getElementById('extract');
+const preview = document.getElementById('preview');
+const swatchesEl = document.getElementById('swatches');
+const canvas = document.getElementById('hiddenCanvas');
+const ctx = canvas.getContext('2d');
+
+let currentImage = null;
+
+fileEl.addEventListener('change', (e)=>{
+  const f = e.target.files && e.target.files[0];
+  if(!f) return;
+  const url = URL.createObjectURL(f);
+  loadImage(url);
+});
+
+loadUrlBtn.addEventListener('click', ()=>{
+  const v = urlEl.value.trim();
+  if(!v) return alert('Paste an image URL first');
+  loadImage(v);
+});
+
+function loadImage(src){
+  const img = new Image();
+  img.crossOrigin = 'anonymous';
+  img.onload = ()=>{
+    currentImage = img;
+    preview.src = src;
+  };
+  img.onerror = ()=> alert('Failed to load image (CORS or invalid URL)');
+  img.src = src;
+}
+
+extractBtn.addEventListener('click', ()=>{
+  if(!currentImage) return alert('Load an image first');
+  extractPalette(currentImage, 6);
+});
+
+function extractPalette(img, count=6){
+  // draw to small canvas to speed up
+  const w = Math.min(300, img.naturalWidth);
+  const h = Math.min(300, img.naturalHeight);
+  canvas.width = w;
+  canvas.height = h;
+  ctx.clearRect(0,0,w,h);
+  ctx.drawImage(img, 0, 0, w, h);
+  const imgd = ctx.getImageData(0,0,w,h).data;
+
+  const bins = {}; // key -> {sumR,sumG,sumB,count}
+  for(let i=0;i<imgd.length;i+=4){
+    const a = imgd[i+3]; if(a<128) continue; // skip transparent
+    // quantize: reduce to 16 levels per channel
+    const r = Math.round(imgd[i]/24)*24;
+    const g = Math.round(imgd[i+1]/24)*24;
+    const b = Math.round(imgd[i+2]/24)*24;
+    const key = r+','+g+','+b;
+    if(!bins[key]) bins[key] = {r:0,g:0,b:0,c:0};
+    bins[key].r += imgd[i]; bins[key].g += imgd[i+1]; bins[key].b += imgd[i+2]; bins[key].c++;
+  }
+
+  const list = Object.keys(bins).map(k=>{
+    const v = bins[k];
+    return {hex: rgbToHex(Math.round(v.r/v.c),Math.round(v.g/v.c),Math.round(v.b/v.c)), count:v.c, r:Math.round(v.r/v.c), g:Math.round(v.g/v.c), b:Math.round(v.b/v.c)};
+  });
+  list.sort((a,b)=>b.count-a.count);
+  const top = list.slice(0,count);
+  renderSwatches(top);
+}
+
+function renderSwatches(list){
+  swatchesEl.innerHTML='';
+  list.forEach(item=>{
+    const el = document.createElement('div'); el.className='swatch';
+    el.style.background = item.hex;
+    const textColor = pickTextColor(item);
+    el.style.color = textColor;
+    const left = document.createElement('div'); left.innerHTML = `<span class="hex">${item.hex}</span><div class="access">${accessInfo(item)}</div>`;
+    const right = document.createElement('div');
+    const copy = document.createElement('button'); copy.className='copy-btn'; copy.textContent='Copy';
+    copy.addEventListener('click', ()=>{ navigator.clipboard.writeText(item.hex).then(()=>copy.textContent='Copied'); setTimeout(()=>copy.textContent='Copy',1200); });
+    right.appendChild(copy);
+    el.appendChild(left); el.appendChild(right);
+    swatchesEl.appendChild(el);
+  });
+}
+
+function accessInfo(item){
+  const white = contrastRatio([item.r,item.g,item.b],[255,255,255]);
+  const black = contrastRatio([item.r,item.g,item.b],[0,0,0]);
+  const best = (white>black)?'white':'black';
+  const whitePass = passes(wcagLevel(white));
+  const blackPass = passes(wcagLevel(black));
+  return `text:${best} · ${Math.round(Math.max(white,black)*100)/100}:1`;
+}
+
+function passes(level){ return level; }
+
+function wcagLevel(ratio){
+  // returns simple pass boolean for AA normal (4.5)
+  return ratio>=4.5;
+}
+
+function pickTextColor(item){
+  const white = contrastRatio([item.r,item.g,item.b],[255,255,255]);
+  const black = contrastRatio([item.r,item.g,item.b],[0,0,0]);
+  return (white>black)?'#fff':'#000';
+}
+
+function rgbToHex(r,g,b){
+  return '#'+[r,g,b].map(x=>{ const s = Math.max(0,Math.min(255,Math.round(x))).toString(16); return s.length===1?('0'+s):s; }).join('');
+}
+
+function luminance(rgb){
+  const srgb = rgb.map(v=>v/255).map(v=> v<=0.03928? v/12.92 : Math.pow((v+0.055)/1.055,2.4));
+  return 0.2126*srgb[0]+0.7152*srgb[1]+0.0722*srgb[2];
+}
+
+function contrastRatio(a,b){
+  const L1 = luminance(a), L2 = luminance(b);
+  const lighter = Math.max(L1,L2), darker = Math.min(L1,L2);
+  return (lighter+0.05)/(darker+0.05);
+}
+</script>
+</body>
+</html>
