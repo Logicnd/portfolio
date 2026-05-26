@@ -48,6 +48,12 @@
           <input type="text" id="captcha" placeholder="Answer" required style="width:80px;padding:0.4rem;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text);">
         </div>
 
+        <!-- Google reCAPTCHA (replace YOUR_SITE_KEY with your key) -->
+        <div style="margin-top:0.75rem;" class="recaptcha-wrap">
+          <div id="recaptcha" class="g-recaptcha" data-sitekey="YOUR_SITE_KEY"></div>
+          <p class="small" style="margin-top:0.5rem">Or complete the reCAPTCHA for extra spam protection.</p>
+        </div>
+
         <div style="margin-top:0.75rem;display:flex;gap:0.5rem;align-items:center;">
           <button type="submit" id="submitBtn" class="btn">Send</button>
           <button type="button" id="clearBtn" class="btn secondary">Clear</button>
@@ -90,11 +96,26 @@
       try{ nextInput.value = window.location.origin + '/contact-thanks.html'; }catch(e){ nextInput.value = '/contact-thanks.html'; }
       form.action = endpoint;
 
-      // client-side checks: honeypot + simple captcha
+      // client-side checks: honeypot + simple captcha + optional reCAPTCHA
+      let widgetId = null;
+      function onRecaptchaLoad(){
+        try{
+          if(typeof grecaptcha !== 'undefined' && document.getElementById('recaptcha')){
+            widgetId = grecaptcha.render('recaptcha', { 'sitekey': 'YOUR_SITE_KEY' });
+          }
+        }catch(e){ /* ignore */ }
+      }
+
+      // if reCAPTCHA API is loaded, render on load; script below adds onload param
       form.addEventListener('submit', function(e){
         msg.textContent = '';
         if(document.getElementById('website').value){ e.preventDefault(); msg.textContent = 'Bot detected.'; return; }
         if(document.getElementById('captcha').value.trim() !== '5'){ e.preventDefault(); msg.textContent = 'Wrong anti-spam answer.'; return; }
+        // if reCAPTCHA is present, require it
+        if(typeof grecaptcha !== 'undefined' && widgetId !== null){
+          var rc = grecaptcha.getResponse(widgetId) || '';
+          if(rc.length === 0){ e.preventDefault(); msg.textContent = 'Please complete the reCAPTCHA.'; return; }
+        }
         // allow normal submit — FormSubmit will handle delivery and redirect to _next
         submitBtn.disabled = true;
         submitBtn.textContent = 'Sending…';
@@ -103,6 +124,9 @@
       clearBtn.addEventListener('click', ()=>{ form.reset(); msg.textContent=''; submitBtn.disabled=false; submitBtn.textContent='Send'; });
     })();
     </script>
+
+    <!-- load Google reCAPTCHA (render explicit) -->
+    <script src="https://www.google.com/recaptcha/api.js?onload=onRecaptchaLoad&render=explicit" async defer></script>
 
   <div id="mobileDrawer" class="mobile-drawer" aria-hidden="true">
     <div class="drawer-inner">
