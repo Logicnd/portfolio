@@ -22,24 +22,5 @@ document.addEventListener('DOMContentLoaded', ()=>{
       } else { if(msg) msg.textContent = ob; revealBtn.disabled = true; }
     });
   }
-  // Spotify embed toggle on homepage
-  const spBtn = document.getElementById('spotifyToggleBtn');
-  if(spBtn){
-    spBtn.addEventListener('click', ()=>{
-      const container = document.getElementById('spotifyContainer');
-      const iframe = document.getElementById('spotifyIframe');
-      const msg = document.getElementById('spotifyMsg');
-      if(container.style.display === 'none' || container.style.display === ''){
-        // lazy-load iframe src if empty — replace YOUR_PLAYLIST_ID with real id
-        if(!iframe.src) iframe.src = 'https://open.spotify.com/embed/playlist/YOUR_PLAYLIST_ID';
-        container.style.display = 'block';
-        spBtn.textContent = 'Hide music';
-        if(msg) msg.textContent = 'Playing via Spotify embed';
-      } else {
-        container.style.display = 'none';
-        spBtn.textContent = 'Play music';
-        if(msg) msg.textContent = '';
-      }
-    });
-  }
+  
 });
