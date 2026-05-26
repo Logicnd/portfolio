@@ -1,26 +1,42 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Mini Tools — Kiri</title>
+  <title>About — Kiri</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-
-  <header class="header topbar">
+  <header class="header">
     <div class="brand">
       <a href="index.html" class="brand-link" aria-label="Kiri home">
         <span class="wordmark">kiri<span class="accent-dot" aria-hidden="true"></span></span>
       </a>
     </div>
     <nav class="topnav">
-      <a href="about.html">About</a>
+      <a href="index.html">Home</a>
       <a href="contact.html">Contact</a>
-      <a href="projects.html">Projects</a>
     </nav>
     <button class="hamburger">☰</button>
   </header>
+
+  <main class="main">
+    <section class="hero">
+      <h1>About</h1>
+      <p class="tagline">Short bio and what I build.</p>
+    </section>
+
+    <section class="card">
+      <h2>About Me</h2>
+      <p class="small">I'm Kiri — a developer focused on small, clean web experiences, Roblox games, and open-source projects. I prefer minimal, fast pages without build steps.</p>
+    </section>
+
+    <section class="card">
+      <h2>Skills</h2>
+      <p class="small">HTML, CSS, JavaScript, Node, Roblox Lua, small utilities and tools.</p>
+    </section>
+
+  </main>
 
   <div id="mobileDrawer" class="mobile-drawer" aria-hidden="true">
     <div class="drawer-inner">
@@ -31,30 +47,11 @@
         <a href="roblox.html">Roblox Games</a>
         <a href="github-projects.html">GitHub Projects</a>
         <a href="mini-tools.html">Mini Tools</a>
-        <a href="about.html">About</a>
         <a href="contact.html">Contact</a>
       </nav>
     </div>
   </div>
 
-  <main class="main">
-    <section class="hero">
-      <h1>Mini Tools</h1>
-      <p class="tagline">Small in-site utilities and upcoming experiments.</p>
-    </section>
-
-    <div class="project-grid">
-      <a href="tools/code-runner.html" class="project">
-        <h3>Code Runner</h3>
-        <p>In-browser playground placeholder — coming soon.</p>
-      </a>
-    </div>
-
-  </main>
-
-  <footer class="footer">
-    <p>&copy; 2026 Kiri</p>
-  </footer>
-
+  <script src="js/site.js"></script>
 </body>
 </html>

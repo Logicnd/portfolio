@@ -8,13 +8,34 @@
 </head>
 <body>
 
-  <header class="header">
+  <header class="header topbar">
     <div class="brand">
       <a href="index.html" class="brand-link" aria-label="Kiri home">
         <span class="wordmark">kiri<span class="accent-dot" aria-hidden="true"></span></span>
       </a>
     </div>
+    <nav class="topnav">
+      <a href="about.html">About</a>
+      <a href="contact.html">Contact</a>
+      <a href="projects.html">Projects</a>
+    </nav>
+    <button class="hamburger">☰</button>
   </header>
+
+  <div id="mobileDrawer" class="mobile-drawer" aria-hidden="true">
+    <div class="drawer-inner">
+      <button class="drawer-close">Close</button>
+      <nav style="margin-top:1rem; display:flex; flex-direction:column; gap:0.75rem;">
+        <a href="index.html">Home</a>
+        <a href="projects.html">Projects</a>
+        <a href="roblox.html">Roblox Games</a>
+        <a href="github-projects.html">GitHub Projects</a>
+        <a href="mini-tools.html">Mini Tools</a>
+        <a href="about.html">About</a>
+        <a href="contact.html">Contact</a>
+      </nav>
+    </div>
+  </div>
 
   <main class="main">
     <section class="hero">
@@ -26,7 +47,9 @@
       <a href="https://www.roblox.com/games/138473318925375/2008-Hangout" class="project" target="_blank" rel="noopener">
         <img src="img/2008-hangout.png" alt="2008 Hangout" style="width:100%;border-radius:6px;margin-bottom:0.5rem;object-fit:cover;">
         <h3>2008 Hangout</h3>
-        <p>A cozy hangout experience on Roblox.</p>
+        <p>Everything's normal in this hangout. 
+
+But something doesn't feel right, below where I stand...</p>
       </a>
     </div>
 
