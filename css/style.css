@@ -279,37 +279,35 @@ body::before{
   animation: bg-pan 18s ease-in-out infinite;
 }
 
-body::after{
+/* localized hero animation: subtle floating orbs near the hero (no layout impact) */
+.header, .main, .footer, .mobile-drawer { position: relative; z-index: 1; }
+
+.hero { position: relative; }
+.hero::before{
   content: "";
-  position: fixed;
-  inset: 0;
-  z-index: -3;
+  position: absolute;
+  inset: -40px -8% auto -8%;
+  height: calc(100% + 80px);
+  z-index: -1;
   pointer-events: none;
   background:
-    radial-gradient(400px 200px at 10% 20%, rgba(88,166,255,0.06), transparent 20%),
-    radial-gradient(300px 150px at 80% 70%, rgba(86,239,155,0.04), transparent 15%),
-    radial-gradient(200px 120px at 50% 40%, rgba(255,199,111,0.03), transparent 12%);
-  filter: blur(18px);
+    radial-gradient(120px 60px at 6% 20%, rgba(88,166,255,0.06), transparent 30%),
+    radial-gradient(90px 45px at 85% 70%, rgba(86,239,155,0.04), transparent 28%),
+    radial-gradient(70px 40px at 50% 40%, rgba(255,199,111,0.03), transparent 30%);
+  filter: blur(14px);
   transform: translateZ(0);
-  animation: blobs 40s linear infinite;
+  background-repeat: no-repeat;
+  background-size: 60% 100%, 40% 100%, 30% 100%;
+  animation: hero-orbs 18s ease-in-out infinite;
   opacity: 0.95;
 }
 
-@keyframes bg-pan{
-  0%{ transform: translate3d(0,0,0) rotate(0deg); }
-  50%{ transform: translate3d(-3%,2%,0) rotate(2deg); }
-  100%{ transform: translate3d(0,0,0) rotate(0deg); }
+@keyframes hero-orbs{
+  0%{ background-position: 6% 20%, 85% 70%, 50% 40%; }
+  50%{ background-position: 10% 24%, 80% 66%, 54% 36%; }
+  100%{ background-position: 6% 20%, 85% 70%, 50% 40%; }
 }
-
-@keyframes blobs{
-  0%{ background-position: 0% 0%, 100% 100%, 50% 50%; }
-  50%{ background-position: 10% 20%, 90% 60%, 60% 40%; }
-  100%{ background-position: 0% 0%, 100% 100%, 50% 50%; }
-}
-
-/* Keep content above animated background */
-.header, .main, .footer, .mobile-drawer { position: relative; z-index: 1; }
 
 @media (prefers-reduced-motion: reduce){
-  body::before, body::after { animation: none; transition: none; }
+  .hero::before { animation: none; }
 }
