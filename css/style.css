@@ -113,6 +113,11 @@ body {
   gap: 1.25rem;
   justify-content: center;
 }
+/* allow main to be scaled to fit the viewport when JS adjusts it */
+.main {
+  transform-origin: top center;
+  transition: transform 150ms ease;
+}
 
 /* ---- hero ---- */
 

@@ -219,5 +219,28 @@ function contrastRatio(a,b){
   return (lighter+0.05)/(darker+0.05);
 }
 </script>
+
+<script>
+  (function fit(){
+    const root = document.querySelector('.main');
+    if(!root) return;
+    function apply(){
+      root.style.transform = 'none';
+      const rw = root.scrollWidth;
+      const rh = root.scrollHeight;
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      const scaleW = vw / rw;
+      const scaleH = vh / rh;
+      const scale = Math.min(scaleW, scaleH, 1);
+      root.style.transform = `scale(${scale})`;
+      const top = Math.max(0, (vh - rh * scale) / 2);
+      root.style.marginTop = top + 'px';
+    }
+    window.addEventListener('resize', ()=> requestAnimationFrame(apply));
+    document.addEventListener('DOMContentLoaded', ()=> requestAnimationFrame(apply));
+    requestAnimationFrame(apply);
+  })();
+</script>
 </body>
 </html>
