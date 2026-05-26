@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Code Runner — Kiri</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .runner {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .editor {
+      width: 100%;
+      min-height: 200px;
+      padding: 1rem;
+      font-family: "SF Mono", "Fira Code", "Cascadia Code", Consolas, monospace;
+      font-size: 0.875rem;
+      line-height: 1.6;
+      color: var(--text);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      resize: vertical;
+      tab-size: 2;
+    }
+
+    .editor:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+
+    .btn-run {
+      padding: 0.5rem 1.25rem;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: #fff;
+      background: var(--accent);
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+
+    .btn-run:hover {
+      opacity: 0.85;
+    }
+
+    .btn-clear {
+      padding: 0.5rem 1rem;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      cursor: pointer;
+      transition: border-color 0.15s;
+    }
+
+    .btn-clear:hover {
+      border-color: var(--text-muted);
+    }
+
+    .output {
+      width: 100%;
+      min-height: 120px;
+      padding: 1rem;
+      font-family: "SF Mono", "Fira Code", "Cascadia Code", Consolas, monospace;
+      font-size: 0.8125rem;
+      line-height: 1.6;
+      color: var(--text-muted);
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      white-space: pre-wrap;
+      word-break: break-word;
+      overflow-y: auto;
+      max-height: 300px;
+    }
+
+    .output-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+    }
+
+    .output-error {
+      color: #f85149;
+    }
+  </style>
+</head>
+<body>
+
+  <header class="header">
+    <div class="brand">
+      <a href="../projects.html" class="brand-link">
+        <span class="brand-name">kiri<span class="brand-dot">.</span></span>
+      </a>
+    </div>
+  </header>
+
+  <main class="main">
+    <section class="hero">
+      <h1>Code Runner</h1>
+      <p class="tagline">Run JavaScript snippets in your browser.</p>
+    </section>
+
+    <div class="runner">
+      <textarea class="editor" id="code" spellcheck="false" placeholder="// Write your JavaScript here...
+console.log('Hello, world!');">console.log('Hello, world!');</textarea>
+
+      <div class="toolbar">
+        <button class="btn-run" id="run">Run</button>
+        <button class="btn-clear" id="clear">Clear Output</button>
+      </div>
+
+      <span class="output-label">Output</span>
+      <div class="output" id="output"></div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <p>&copy; 2025 Kiri</p>
+  </footer>
+
+  <script>
+    const codeEl = document.getElementById('code');
+    const outputEl = document.getElementById('output');
+    const runBtn = document.getElementById('run');
+    const clearBtn = document.getElementById('clear');
+
+    // Allow Tab key inside the editor
+    codeEl.addEventListener('keydown', function (e) {
+      if (e.key === 'Tab') {
+        e.preventDefault();
+        const start = this.selectionStart;
+        const end = this.selectionEnd;
+        this.value = this.value.substring(0, start) + '  ' + this.value.substring(end);
+        this.selectionStart = this.selectionEnd = start + 2;
+      }
+    });
+
+    runBtn.addEventListener('click', function () {
+      outputEl.textContent = '';
+      outputEl.classList.remove('output-error');
+
+      const logs = [];
+      const originalLog = console.log;
+      const originalWarn = console.warn;
+      const originalError = console.error;
+
+      console.log = function () {
+        logs.push([...arguments].map(a => {
+          if (typeof a === 'object') return JSON.stringify(a, null, 2);
+          return String(a);
+        }).join(' '));
+      };
+      console.warn = console.log;
+      console.error = console.log;
+
+      try {
+        const result = eval(codeEl.value);
+        if (result !== undefined && logs.length === 0) {
+          logs.push(typeof result === 'object' ? JSON.stringify(result, null, 2) : String(result));
+        }
+        outputEl.textContent = logs.join('\n') || '(no output)';
+      } catch (err) {
+        outputEl.classList.add('output-error');
+        outputEl.textContent = logs.length ? logs.join('\n') + '\n\n' + err : String(err);
+      } finally {
+        console.log = originalLog;
+        console.warn = originalWarn;
+        console.error = originalError;
+      }
+    });
+
+    clearBtn.addEventListener('click', function () {
+      outputEl.textContent = '';
+      outputEl.classList.remove('output-error');
+    });
+  </script>
+
+</body>
+</html>
