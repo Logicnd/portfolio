@@ -63,6 +63,14 @@ body {
   letter-spacing: -0.01em;
 }
 
+.brand-link {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  text-decoration: none;
+  color: inherit;
+}
+
 /* ---- main ---- */
 
 .main {
