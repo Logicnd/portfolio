@@ -107,8 +107,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 2rem;
-  /* keep main filling viewport so short pages are vertically centered */
-  min-height: calc(100vh - 140px);
+  /* keep main vertically centered via flex; avoid forced min-height to prevent overflow */
   justify-content: center;
 }
 
@@ -226,7 +225,6 @@ body {
 @media (max-width: 480px) {
   .main {
     padding: 2rem 1rem 3rem;
-    min-height: auto;
   }
 
   .hero h1 {
