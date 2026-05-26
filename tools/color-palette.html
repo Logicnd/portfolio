@@ -10,15 +10,20 @@
     .card { padding:1rem; border-radius:8px; border:1px solid var(--border); background:var(--surface); }
     .inputs { display:flex; gap:0.75rem; align-items:center; margin-bottom:0.75rem; }
     .preview-img { max-width:240px; max-height:160px; object-fit:contain; border:1px solid var(--border); border-radius:6px; }
-    .swatches { display:flex; gap:0.5rem; flex-wrap:wrap; margin-top:0.75rem; }
-    .swatch { width:96px; padding:0.5rem; border-radius:6px; color:var(--text); font-size:0.85rem; display:flex; gap:0.5rem; align-items:center; justify-content:space-between; border:1px solid rgba(255,255,255,0.03); }
-    .swatch .hex { font-weight:600; }
+
+    /* Tidy swatches grid */
+    .swatches { display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:12px; margin-top:0.75rem; }
+    .swatch { background:var(--panel, rgba(255,255,255,0.02)); border-radius:8px; overflow:hidden; box-shadow: 0 1px 0 rgba(0,0,0,0.2) inset; display:flex; flex-direction:column; }
+    .swatch .color { height:72px; width:100%; }
+    .swatch .info { padding:0.5rem; display:flex; align-items:center; justify-content:space-between; gap:0.5rem; }
+    .swatch .hex { font-weight:700; letter-spacing:0.2px; }
+    .swatch .meta { font-size:0.78rem; color:var(--text-muted); padding:0 0.5rem 0.6rem; }
     .controls { display:flex; gap:0.5rem; align-items:center; }
     .note { color:var(--text-muted); font-size:0.9rem; }
     input[type=file] { color:var(--text); }
-    .copy-btn { background:transparent; border:1px solid var(--border); color:var(--text); padding:0.25rem 0.45rem; border-radius:6px; cursor:pointer; }
-    .access { font-size:0.8rem; color:var(--text-muted); }
-    @media (max-width:900px){ .inputs{ flex-direction:column; align-items:flex-start } .swatch{ width:48%; } }
+    .copy-btn { background:transparent; border:1px solid var(--border); color:var(--text); padding:0.25rem 0.45rem; border-radius:6px; cursor:pointer; font-size:0.85rem; }
+
+    @media (max-width:900px){ .inputs{ flex-direction:column; align-items:flex-start } .swatches{ grid-template-columns:repeat(auto-fill,minmax(120px,1fr)); } }
   </style>
 </head>
 <body>
@@ -134,19 +139,41 @@ function extractPalette(img, count=6){
 }
 
 function renderSwatches(list){
-  swatchesEl.innerHTML='';
+  swatchesEl.innerHTML = '';
   list.forEach(item=>{
-    const el = document.createElement('div'); el.className='swatch';
-    el.style.background = item.hex;
-    const textColor = pickTextColor(item);
-    el.style.color = textColor;
-    const left = document.createElement('div'); left.innerHTML = `<span class="hex">${item.hex}</span><div class="access">${accessInfo(item)}</div>`;
-    const right = document.createElement('div');
-    const copy = document.createElement('button'); copy.className='copy-btn'; copy.textContent='Copy';
-    copy.addEventListener('click', ()=>{ navigator.clipboard.writeText(item.hex).then(()=>copy.textContent='Copied'); setTimeout(()=>copy.textContent='Copy',1200); });
-    right.appendChild(copy);
-    el.appendChild(left); el.appendChild(right);
-    swatchesEl.appendChild(el);
+    const card = document.createElement('div');
+    card.className = 'swatch';
+
+    const colorBar = document.createElement('div');
+    colorBar.className = 'color';
+    colorBar.style.background = item.hex;
+
+    const info = document.createElement('div');
+    info.className = 'info';
+    const hex = document.createElement('div');
+    hex.className = 'hex';
+    hex.textContent = item.hex;
+
+    const copy = document.createElement('button');
+    copy.className = 'copy-btn';
+    copy.setAttribute('aria-label', `Copy ${item.hex}`);
+    copy.textContent = 'Copy';
+    copy.addEventListener('click', ()=>{
+      navigator.clipboard.writeText(item.hex).then(()=>{ copy.textContent = 'Copied'; setTimeout(()=>copy.textContent = 'Copy', 1100); });
+    });
+
+    info.appendChild(hex);
+    info.appendChild(copy);
+
+    const meta = document.createElement('div');
+    meta.className = 'meta';
+    meta.textContent = accessInfo(item);
+
+    card.appendChild(colorBar);
+    card.appendChild(info);
+    card.appendChild(meta);
+
+    swatchesEl.appendChild(card);
   });
 }
 
@@ -154,16 +181,8 @@ function accessInfo(item){
   const white = contrastRatio([item.r,item.g,item.b],[255,255,255]);
   const black = contrastRatio([item.r,item.g,item.b],[0,0,0]);
   const best = (white>black)?'white':'black';
-  const whitePass = passes(wcagLevel(white));
-  const blackPass = passes(wcagLevel(black));
-  return `text:${best} · ${Math.round(Math.max(white,black)*100)/100}:1`;
-}
-
-function passes(level){ return level; }
-
-function wcagLevel(ratio){
-  // returns simple pass boolean for AA normal (4.5)
-  return ratio>=4.5;
+  const ratio = Math.max(white, black);
+  return `text:${best} • ${ratio.toFixed(2)}:1`;
 }
 
 function pickTextColor(item){
