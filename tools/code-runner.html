@@ -6,98 +6,23 @@
   <title>Code Runner — Kiri</title>
   <link rel="stylesheet" href="../css/style.css">
   <style>
-    .runner {
-      display: flex;
-      flex-direction: column;
-      gap: 0.75rem;
-    }
-
-    .editor {
-      width: 100%;
-      min-height: 200px;
-      padding: 1rem;
-      font-family: "SF Mono", "Fira Code", "Cascadia Code", Consolas, monospace;
-      font-size: 0.875rem;
-      line-height: 1.6;
-      color: var(--text);
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      resize: vertical;
-      tab-size: 2;
-    }
-
-    .editor:focus {
-      outline: none;
-      border-color: var(--accent);
-    }
-
-    .toolbar {
-      display: flex;
-      gap: 0.5rem;
-      align-items: center;
-    }
-
-    .btn-run {
-      padding: 0.5rem 1.25rem;
-      font-size: 0.8125rem;
-      font-weight: 600;
-      color: #fff;
-      background: var(--accent);
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: opacity 0.15s;
-    }
-
-    .btn-run:hover {
-      opacity: 0.85;
-    }
-
-    .btn-clear {
-      padding: 0.5rem 1rem;
-      font-size: 0.8125rem;
-      font-weight: 500;
-      color: var(--text-muted);
-      background: transparent;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      cursor: pointer;
-      transition: border-color 0.15s;
-    }
-
-    .btn-clear:hover {
-      border-color: var(--text-muted);
-    }
-
-    .output {
-      width: 100%;
-      min-height: 120px;
-      padding: 1rem;
-      font-family: "SF Mono", "Fira Code", "Cascadia Code", Consolas, monospace;
-      font-size: 0.8125rem;
-      line-height: 1.6;
-      color: var(--text-muted);
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      white-space: pre-wrap;
-      word-break: break-word;
-      overflow-y: auto;
-      max-height: 300px;
-    }
-
-    .output-label {
-      font-size: 0.75rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: var(--text-muted);
-    }
-
-    .output-error {
-      color: #f85149;
-    }
+    :root { --editor-bg:#0b0d10; --editor-fg:#c9d1d9; --muted:#8b949e; }
+    .runner { max-width:1100px; margin:1.5rem auto; }
+    .toolbar { display:flex; gap:0.5rem; align-items:center; margin-bottom:0.75rem; }
+    .btn { background:var(--surface); border:1px solid var(--border); color:var(--text); padding:0.45rem 0.7rem; border-radius:6px; cursor:pointer; }
+    .btn.secondary { background:transparent; color:var(--text-muted); }
+    .split { display:grid; grid-template-columns:1fr 420px; gap:0.75rem; }
+    .editors { background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:0.5rem; display:flex; flex-direction:column; gap:0.5rem; }
+    .tabs { display:flex; gap:0.5rem; }
+    .tab { padding:0.35rem 0.6rem; border-radius:6px; background:transparent; color:var(--text-muted); cursor:pointer; border:1px solid transparent; }
+    .tab.active { background:var(--bg); color:var(--text); border-color:var(--border); }
+    textarea.code { width:100%; height:220px; background:var(--editor-bg); color:var(--editor-fg); border:1px solid var(--border); padding:0.6rem; border-radius:6px; font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, monospace; font-size:0.9rem; resize:vertical; }
+    .preview { background:var(--surface); border:1px solid var(--border); border-radius:8px; overflow:hidden; display:flex; flex-direction:column; }
+    .preview-toolbar { padding:0.5rem; border-bottom:1px solid var(--border); display:flex; gap:0.5rem; align-items:center; }
+    .preview-iframe { flex:1; border:0; width:100%; height:360px; background:white; }
+    .console { font-family:ui-monospace, monospace; font-size:0.85rem; color:var(--text); background:#07080a; padding:0.6rem; height:120px; overflow:auto; border-top:1px solid var(--border); }
+    .small { color:var(--text-muted); font-size:0.9rem; }
+    @media (max-width:900px) { .split { grid-template-columns:1fr; } .preview-iframe{height:260px;} }
   </style>
 </head>
 <body>
@@ -113,20 +38,41 @@
   <main class="main">
     <section class="hero">
       <h1>Code Runner</h1>
-      <p class="tagline">Run JavaScript snippets in your browser.</p>
+      <p class="tagline">In-browser playground: HTML / CSS / JS preview with console capture.</p>
     </section>
 
     <div class="runner">
-      <textarea class="editor" id="code" spellcheck="false" placeholder="// Write your JavaScript here...
-console.log('Hello, world!');">console.log('Hello, world!');</textarea>
-
       <div class="toolbar">
-        <button class="btn-run" id="run">Run</button>
-        <button class="btn-clear" id="clear">Clear Output</button>
+        <button id="runBtn" class="btn">Run</button>
+        <button id="resetBtn" class="btn secondary">Reset</button>
+        <button id="saveBtn" class="btn secondary">Save</button>
+        <button id="downloadBtn" class="btn secondary">Download</button>
+        <div style="flex:1"></div>
+        <span class="small">Tip: your code runs locally in an iframe sandbox.</span>
       </div>
 
-      <span class="output-label">Output</span>
-      <div class="output" id="output"></div>
+      <div class="split">
+        <div class="editors">
+          <div class="tabs">
+            <button class="tab active" data-tab="html">HTML</button>
+            <button class="tab" data-tab="css">CSS</button>
+            <button class="tab" data-tab="js">JS</button>
+          </div>
+          <div class="editor-area">
+            <textarea id="html" class="code"></textarea>
+            <textarea id="css" class="code" style="display:none"></textarea>
+            <textarea id="js" class="code" style="display:none"></textarea>
+          </div>
+        </div>
+
+        <div class="preview">
+          <div class="preview-toolbar">
+            <strong class="small">Preview</strong>
+          </div>
+          <iframe id="preview" class="preview-iframe" sandbox="allow-scripts"></iframe>
+          <div id="console" class="console"></div>
+        </div>
+      </div>
     </div>
   </main>
 
@@ -135,60 +81,79 @@ console.log('Hello, world!');">console.log('Hello, world!');</textarea>
   </footer>
 
   <script>
-    const codeEl = document.getElementById('code');
-    const outputEl = document.getElementById('output');
-    const runBtn = document.getElementById('run');
-    const clearBtn = document.getElementById('clear');
+    const defaultHTML = `<!doctype html>\n<html><body>\n<h2 style="font-family:system-ui">Hello from Code Runner</h2>\n<p>Edit HTML, CSS, JS and hit Run.</p>\n</body></html>`;
+    const defaultCSS = `body { font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; color:#111; padding:1rem } h2{color:#0b64ff}`;
+    const defaultJS = `console.log('Welcome to Code Runner');`;
 
-    codeEl.addEventListener('keydown', function (e) {
-      if (e.key === 'Tab') {
-        e.preventDefault();
-        const start = this.selectionStart;
-        const end = this.selectionEnd;
-        this.value = this.value.substring(0, start) + '  ' + this.value.substring(end);
-        this.selectionStart = this.selectionEnd = start + 2;
-      }
+    const htmlEl = document.getElementById('html');
+    const cssEl = document.getElementById('css');
+    const jsEl = document.getElementById('js');
+    const preview = document.getElementById('preview');
+    const consoleEl = document.getElementById('console');
+
+    function loadSaved(){
+      htmlEl.value = localStorage.getItem('cr:html') || defaultHTML;
+      cssEl.value = localStorage.getItem('cr:css') || defaultCSS;
+      jsEl.value = localStorage.getItem('cr:js') || defaultJS;
+    }
+
+    function buildSrcDoc(){
+      return `<!doctype html><html><head><meta charset="utf-8"><style>${cssEl.value}</style></head><body>${htmlEl.value}<script>\n// hook console to parent\n(function(){
+        const send = (type,args)=>parent.postMessage({__CR:true,type,args},'*');
+        ['log','warn','error','info','debug'].forEach(fn=>{
+          const orig = console[fn];
+          console[fn]=function(){ send(fn,Array.from(arguments)); orig.apply(console,arguments); }
+        });
+      })();\ntry{\n${jsEl.value}\n}catch(e){console.error(e)}<\/script></body></html>`;
+    }
+
+    window.addEventListener('message', (ev)=>{
+      if(!ev.data || !ev.data.__CR) return;
+      const {type,args} = ev.data;
+      const entry = document.createElement('div');
+      entry.textContent = `[${type}] ${args.map(a=>{try{return JSON.stringify(a)}catch(e){return String(a)}}).join(' ' )}`;
+      consoleEl.appendChild(entry);
+      consoleEl.scrollTop = consoleEl.scrollHeight;
     });
 
-    runBtn.addEventListener('click', function () {
-      outputEl.textContent = '';
-      outputEl.classList.remove('output-error');
-
-      const logs = [];
-      const originalLog = console.log;
-      const originalWarn = console.warn;
-      const originalError = console.error;
-
-      console.log = function () {
-        logs.push([...arguments].map(a => {
-          if (typeof a === 'object') return JSON.stringify(a, null, 2);
-          return String(a);
-        }).join(' '));
-      };
-      console.warn = console.log;
-      console.error = console.log;
-
-      try {
-        const result = eval(codeEl.value);
-        if (result !== undefined && logs.length === 0) {
-          logs.push(typeof result === 'object' ? JSON.stringify(result, null, 2) : String(result));
-        }
-        outputEl.textContent = logs.join('\n') || '(no output)';
-      } catch (err) {
-        outputEl.classList.add('output-error');
-        outputEl.textContent = logs.length ? logs.join('\n') + '\n\n' + err : String(err);
-      } finally {
-        console.log = originalLog;
-        console.warn = originalWarn;
-        console.error = originalError;
-      }
+    document.getElementById('runBtn').addEventListener('click', ()=>{
+      consoleEl.textContent='';
+      const src = buildSrcDoc();
+      preview.srcdoc = src;
     });
 
-    clearBtn.addEventListener('click', function () {
-      outputEl.textContent = '';
-      outputEl.classList.remove('output-error');
+    document.getElementById('resetBtn').addEventListener('click', ()=>{ if(confirm('Reset editor to defaults?')){ htmlEl.value=defaultHTML; cssEl.value=defaultCSS; jsEl.value=defaultJS; localStorage.removeItem('cr:html'); localStorage.removeItem('cr:css'); localStorage.removeItem('cr:js'); } });
+
+    document.getElementById('saveBtn').addEventListener('click', ()=>{
+      localStorage.setItem('cr:html', htmlEl.value);
+      localStorage.setItem('cr:css', cssEl.value);
+      localStorage.setItem('cr:js', jsEl.value);
+      alert('Saved to localStorage');
     });
+
+    document.getElementById('downloadBtn').addEventListener('click', ()=>{
+      const a = document.createElement('a');
+      const blob = new Blob([buildSrcDoc()], {type:'text/html'});
+      a.href = URL.createObjectURL(blob);
+      a.download = 'code-runner.html';
+      a.click();
+      URL.revokeObjectURL(a.href);
+    });
+
+    // tabs
+    document.querySelectorAll('.tab').forEach(btn=>btn.addEventListener('click', ()=>{
+      document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+      btn.classList.add('active');
+      const tab = btn.dataset.tab;
+      htmlEl.style.display = (tab==='html')?'block':'none';
+      cssEl.style.display = (tab==='css')?'block':'none';
+      jsEl.style.display = (tab==='js')?'block':'none';
+    }));
+
+    // init
+    loadSaved();
+    // run once to show preview
+    document.getElementById('runBtn').click();
   </script>
-
 </body>
 </html>
